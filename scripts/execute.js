@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  const governorAddress = "0x59b670e9fA9D0A427751Af201D676719a970857b";
+  const governorAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
   const description = "Approve Solar Project #3";
   const descriptionHash = ethers.utils.id(description);
