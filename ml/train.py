@@ -20,7 +20,7 @@ reg_pipe = Pipeline([("scaler", StandardScaler()), ("rf", RandomForestRegressor(
 reg_pipe.fit(X, y)
 
 # Anomaly detector on same features
-iso = IsolationForest(n_estimators=100, contamination=0.1, random_state=42)
+iso = IsolationForest(n_estimators=100, contamination=0.05, random_state=42)
 iso.fit(X)
 
 #split data into train/test for accuracy evaluation 
