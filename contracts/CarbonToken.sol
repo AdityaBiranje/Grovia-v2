@@ -22,39 +22,53 @@ contract CarbonToken is ERC20Votes, Ownable {
         _mint(msg.sender, 1000000 * 10**18);
     }
 
+    // 🔥 Simple mint for DAO setup
+    function mint(address to, uint256 amount) external onlyOwner {
+        _mint(to, amount);
+    }
+
+    // 🌱 Project-based mint
     function mintForProject(
         address to,
         uint256 amount,
         string calldata ipfsHash
     ) external onlyOwner returns (uint256) {
         uint256 projectId = nextProjectId++;
+
         _mint(to, amount);
         metadataHash[projectId] = ipfsHash;
 
         emit ProjectMinted(projectId, to, amount, ipfsHash);
+
         return projectId;
     }
 
+    // 🔥 Burn (retire credits)
     function retire(uint256 amount) external {
         _burn(msg.sender, amount);
     }
 
-    // 🔥 REQUIRED overrides for ERC20Votes (OpenZeppelin v4)
+    // =========================
+    // REQUIRED OVERRIDES (OZ v4)
+    // =========================
 
     function _afterTokenTransfer(address from, address to, uint256 amount)
-        internal override(ERC20Votes)
+        internal
+        override(ERC20Votes)
     {
         super._afterTokenTransfer(from, to, amount);
     }
 
     function _mint(address to, uint256 amount)
-        internal override(ERC20Votes)
+        internal
+        override(ERC20Votes)
     {
         super._mint(to, amount);
     }
 
     function _burn(address account, uint256 amount)
-        internal override(ERC20Votes)
+        internal
+        override(ERC20Votes)
     {
         super._burn(account, amount);
     }

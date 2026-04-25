@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, Shield, Coins, Zap, Leaf, TrendingUp } from "lucide-react";
+import { Brain, Shield, Coins, Zap, Leaf, TrendingUp, Loader2 } from "lucide-react";
 import { GlassCard } from "@/components/GlassCard";
 import { MoleculeBackground } from "@/components/MoleculeBackground";
 import { EnergyOrb } from "@/components/EnergyOrb";
@@ -27,21 +27,57 @@ export default function Home() {
     mintStatus: string;
   } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simulate AI processing
-    setTimeout(() => {
-      setResult({
-        co2Tons: Math.random() * 100 + 50,
-        fraudScore: Math.random() * 20,
-        mintStatus: "success",
+    setIsLoading(true);
+    setResult(null);
+
+    try {
+      const response = await fetch("http://localhost:4000/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: formData.projectId,
+          name: formData.name,
+          location: formData.location,
+          energy_generated_kwh: Number(formData.kwhGenerated),
+          weather_score: Number(formData.weatherScore),
+          grid_emission_factor: Number(formData.gridEmissionFactor),
+          ownerAddress: formData.ownerWallet,
+          ipfsHash: formData.ipfsHash,
+        }),
       });
-      toast.success("Project verified successfully!");
-      
-      // Scroll to results
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || "Submission failed. Please try again.");
+        return;
+      }
+
+      setResult({
+        co2Tons: data.ml?.predicted_co2_tons ?? 0,
+        fraudScore: data.ml?.fraud_score_percent ?? 0,
+        mintStatus: data.ok ? "success" : data.flagged ? "flagged" : "failed",
+      });
+
+      if (data.ok) {
+        toast.success("Project verified and tokens minted!");
+      } else if (data.flagged) {
+        toast.warning("Project flagged for admin review.");
+      } else {
+        toast.error("Minting failed: " + (data.reason || "unknown error"));
+      }
+
       document.getElementById("results")?.scrollIntoView({ behavior: "smooth" });
-    }, 1500);
+
+    } catch (err) {
+      toast.error("Could not reach the server. Is the backend running?");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const features = [
@@ -172,6 +208,7 @@ export default function Home() {
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     className="glass border-primary/30"
+                    placeholder="e.g. Mumbai, London, California"
                     required
                   />
                 </div>
@@ -241,10 +278,20 @@ export default function Home() {
 
               <Button
                 type="submit"
-                className="w-full glow-primary bg-primary/20 border-2 border-primary hover:bg-primary/30 text-primary font-bold text-lg py-6"
+                disabled={isLoading}
+                className="w-full glow-primary bg-primary/20 border-2 border-primary hover:bg-primary/30 text-primary font-bold text-lg py-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Leaf className="w-5 h-5 mr-2" />
-                Verify & Submit
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Verifying Location & Data...
+                  </>
+                ) : (
+                  <>
+                    <Leaf className="w-5 h-5 mr-2" />
+                    Verify & Submit
+                  </>
+                )}
               </Button>
             </form>
           </GlassCard>
@@ -281,7 +328,9 @@ export default function Home() {
                     <p className="text-4xl font-bold text-secondary">
                       {result.fraudScore.toFixed(1)}%
                     </p>
-                    <p className="text-muted-foreground mt-2">low risk</p>
+                    <p className="text-muted-foreground mt-2">
+                      {result.fraudScore < 40 ? "low risk" : "flagged for review"}
+                    </p>
                   </div>
                 </GlassCard>
 
@@ -289,10 +338,22 @@ export default function Home() {
                   <div className="text-center">
                     <Coins className="w-12 h-12 text-accent mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Mint Status</h3>
-                    <p className="text-4xl font-bold text-accent uppercase">
+                    <p className={`text-4xl font-bold uppercase ${
+                      result.mintStatus === "success"
+                        ? "text-accent"
+                        : result.mintStatus === "flagged"
+                        ? "text-yellow-400"
+                        : "text-red-400"
+                    }`}>
                       {result.mintStatus}
                     </p>
-                    <p className="text-muted-foreground mt-2">NFT created</p>
+                    <p className="text-muted-foreground mt-2">
+                      {result.mintStatus === "success"
+                        ? "NFT created"
+                        : result.mintStatus === "flagged"
+                        ? "Pending admin review"
+                        : "Minting failed"}
+                    </p>
                   </div>
                 </GlassCard>
               </div>
