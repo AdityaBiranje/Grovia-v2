@@ -101,7 +101,18 @@ app.post("/submit", async (req, res) => {
 
     // -------- Verification --------
     const verificationResult = await verifyProject(payload);
-
+    // Stop process if location is invalid
+    if (
+      verificationResult.suspicious &&
+      verificationResult.reasons.includes("Invalid project location")
+    ) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid location entered. Please enter a valid location."
+    });
+    }
+    
+    // Normal suspicious logic
     payload.status = verificationResult.suspicious
       ? "FLAGGED_FOR_DAO"
       : "VERIFIED";
