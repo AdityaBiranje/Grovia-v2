@@ -1,21 +1,45 @@
 const axios = require("axios");
 
 async function validateLocation(locationName) {
-    const url = `https://nominatim.openstreetmap.org/search?q=${locationName}&format=json&limit=1`;
+    try {
+        const apiKey = process.env.OPENWEATHER_API_KEY;
 
-    const response = await axios.get(url);
+        const url = `http://api.openweathermap.org/geo/1.0/direct?q=${locationName}&limit=1&appid=${apiKey}`;
 
-    if (response.data.length === 0) {
+        const response = await axios.get(url);
+
+        // No location found
+        if (response.data.length === 0) {
+            return {
+                valid: false
+            };
+        }
+
+        const place = response.data[0];
+
+        // Exact name match check
+        if (
+            place.name.toLowerCase() !==
+            locationName.toLowerCase().trim()
+        ) {
+            return {
+                valid: false
+            };
+        }
+
+        return {
+            valid: true,
+            lat: place.lat,
+            lon: place.lon
+        };
+
+    } catch (error) {
+        console.log("Location Validation Error:", error.message);
+
         return {
             valid: false
         };
     }
-
-    return {
-        valid: true,
-        lat: response.data[0].lat,
-        lon: response.data[0].lon
-    };
 }
 
 module.exports = validateLocation;
