@@ -1,18 +1,22 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  const tokenAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
+  const carbonAddress = "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F";
 
-  const [signer] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
 
-  const token = await ethers.getContractAt("CarbonToken", tokenAddress);
+  const carbon = await ethers.getContractAt("CarbonToken", carbonAddress);
 
-  console.log("Delegating votes to:", signer.address);
+  console.log("Delegating votes to:", deployer.address);
 
-  const tx = await token.delegate(signer.address);
+  const tx = await carbon.delegate(deployer.address);
   await tx.wait();
 
   console.log("Delegation complete ✅");
+
+  // 🔥 Check voting power
+  const votes = await carbon.getVotes(deployer.address);
+  console.log("Current voting power:", votes.toString());
 }
 
 main().catch((err) => {
