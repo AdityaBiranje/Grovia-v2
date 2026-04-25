@@ -13,8 +13,8 @@ class ProjectInput(BaseModel):
     grid_emission_factor: float
 
 # load models
-reg = joblib.load("ml/reg_model.joblib")
-iso = joblib.load("ml/iso_model.joblib")
+reg = joblib.load("reg_model.joblib")
+iso = joblib.load("iso_model.joblib")
 
 @app.post("/predict")
 def predict(p: ProjectInput):
