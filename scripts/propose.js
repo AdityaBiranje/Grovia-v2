@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  const governorAddress = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6";
+  const governorAddress = "0x59b670e9fA9D0A427751Af201D676719a970857b";
   const [proposer] = await ethers.getSigners();
 
   const governor = await ethers.getContractAt("GroviaGovernor", governorAddress);

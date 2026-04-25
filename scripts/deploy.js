@@ -25,11 +25,14 @@ async function main() {
   console.log("Timelock deployed at:", timelock.address);
 
   // 🗳️ 3. Deploy Governor
-  const Governor = await ethers.getContractFactory("GroviaGovernor");
-  const governor = await Governor.deploy(carbon.address);
-  await governor.deployed();
-  console.log("Governor deployed at:", governor.address);
-
+  // Deploy Governor
+const Governor = await ethers.getContractFactory("GroviaGovernor");
+const governor = await Governor.deploy(
+  carbon.address,
+  timelock.address
+);
+await governor.deployed();
+console.log("Governor deployed at:", governor.address);
   // 🔐 4. Setup Roles
 
   const proposerRole = await timelock.PROPOSER_ROLE();

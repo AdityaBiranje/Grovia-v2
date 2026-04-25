@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  const governorAddress = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6";
+  const governorAddress = "0x59b670e9fA9D0A427751Af201D676719a970857b";
   const proposalId = "24829565617042109866529831957282381929482103738987011322933524967348567362811";
 
   const [voter] = await ethers.getSigners();

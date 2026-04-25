@@ -8,7 +8,6 @@ async function validateLocation(locationName) {
 
         const response = await axios.get(url);
 
-        // No location found
         if (response.data.length === 0) {
             return {
                 valid: false
@@ -17,11 +16,14 @@ async function validateLocation(locationName) {
 
         const place = response.data[0];
 
-        // Exact name match check
-        if (
-            place.name.toLowerCase() !==
-            locationName.toLowerCase().trim()
-        ) {
+        const userInput = locationName.toLowerCase().trim();
+        const actualLocation = place.name.toLowerCase().trim();
+
+        console.log("User Input:", userInput);
+        console.log("API Returned:", actualLocation);
+
+        // exact match
+        if (userInput !== actualLocation) {
             return {
                 valid: false
             };
