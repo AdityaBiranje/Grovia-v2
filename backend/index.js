@@ -5,8 +5,10 @@ const mongoose = require("mongoose");
 const axios = require("axios");
 const bodyParser = require("body-parser");
 
-const { connectContract, getContract } = require("./contract");
+const { connectContract, getContract, getGovernorContract } = require("./contract");
+const { ethers } = require("ethers");
 const Submission = require("./model");
+const Retirement = require("./retirementModel");
 const { adminOnly, simpleLogin } = require("./auth");
 const verifyProject = require("./services/verificationService");
 
@@ -161,6 +163,7 @@ app.post("/submit", async (req, res) => {
     const fraud = doc.ml?.fraud_score_percent ?? 100;
 
     if (fraud < FRAUD_THRESHOLD) {
+      // 🟢 AUTO APPROVE
       try {
         const contract = getContract();
         if (!contract) throw new Error("contract not initialized");
@@ -184,13 +187,15 @@ app.post("/submit", async (req, res) => {
           blockNumber: receipt.blockNumber,
           mintedAt: new Date()
         };
+        doc.status = "approved_auto";
 
         await doc.save();
 
         return res.json({
           ok: true,
           minted: doc.minted,
-          ml: doc.ml
+          ml: doc.ml,
+          status: doc.status
         });
 
       } catch (err) {
@@ -204,14 +209,68 @@ app.post("/submit", async (req, res) => {
         });
       }
     } else {
-      doc.minted = { ok: false, flagged: true };
-      await doc.save();
+      // 🔴 CREATE DAO PROPOSAL
+      try {
+        const { getGovernorContract } = require("./contract");
+        const contract = getContract();
+        const governor = getGovernorContract();
+        
+        if (!governor || !contract) throw new Error("Contracts not initialized");
 
-      return res.json({
-        ok: false,
-        flagged: true,
-        ml: doc.ml
-      });
+        const tokens = Math.round((doc.ml?.predicted_co2_tons ?? 0) * 1000);
+        const description = `Mint ${tokens} CTK for Project ${doc.projectId} (Fraud Score: ${fraud}%) - UniqueID: ${Date.now()}`;
+        const descriptionHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(description));
+
+        const encoded = contract.interface.encodeFunctionData("mintForProject", [
+          doc.ownerAddress,
+          ethers.utils.parseEther(tokens.toString()),
+          doc.ipfsHash || ""
+        ]);
+
+        console.log("Creating DAO proposal...");
+        const tx = await governor.propose(
+          [contract.address],
+          [0],
+          [encoded],
+          description
+        );
+        const receipt = await tx.wait();
+
+        const event = receipt.events?.find(e => e.event === 'ProposalCreated');
+        let proposalId = event ? event.args.proposalId.toString() : "0";
+
+        // Mine 1 block so the proposal becomes active immediately
+        await contract.provider.send("evm_mine", []);
+
+        doc.status = "pending_dao";
+        doc.dao = {
+          proposalId,
+          description,
+          descriptionHash,
+          targets: [contract.address],
+          values: [0],
+          calldatas: [encoded]
+        };
+        
+        doc.minted = { ok: false, flagged: true };
+        await doc.save();
+
+        return res.json({
+          ok: true,
+          flagged: true,
+          status: doc.status,
+          dao: doc.dao,
+          ml: doc.ml
+        });
+
+      } catch (err) {
+        console.error("Propose failed:", err);
+        return res.json({
+          ok: false,
+          error: "proposal_failed",
+          reason: err.message
+        });
+      }
     }
 
   } catch (err) {
@@ -245,6 +304,115 @@ app.get("/submission/:projectId", async (req, res) => {
     res.json(doc);
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+// ---------------- RETIREMENT ----------------
+app.post("/retire", async (req, res) => {
+  try {
+    const { user, projectId, amount, txHash } = req.body;
+    if (!user || !projectId || !amount) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const { getNFTContract } = require("./contract");
+    const nft = getNFTContract();
+
+    if (!nft) throw new Error("NFT contract not initialized");
+
+    const metadataURI = `ipfs://impact/${projectId}`;
+    console.log(`Minting NFT for ${user}...`);
+    const tx = await nft.mintRetirementNFT(user, Number(projectId), Number(amount), metadataURI);
+    const receipt = await tx.wait();
+
+    // Find the event to extract tokenId
+    const event = receipt.events?.find(e => e.event === 'RetirementNFTMinted');
+    let nftId = event ? event.args.tokenId.toString() : "0";
+
+    const record = new Retirement({
+      user,
+      projectId,
+      amount: Number(amount),
+      nftId: Number(nftId),
+      txHash: txHash || receipt.transactionHash
+    });
+    await record.save();
+
+    res.json({ ok: true, nftId, txHash: receipt.transactionHash });
+  } catch (e) {
+    console.error("Retire error:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/retirements/:user", async (req, res) => {
+  try {
+    const docs = await Retirement.find({ user: req.params.user })
+      .sort({ createdAt: -1 })
+      .lean();
+    res.json(docs);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ---------------- DAO ----------------
+app.get("/dao/proposals", async (req, res) => {
+  try {
+    const docs = await Submission.find({ status: "pending_dao" })
+      .sort({ createdAt: -1 })
+      .lean();
+    res.json(docs);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/dao/vote", async (req, res) => {
+  try {
+    // Just a stub for UI updates if needed. The real vote happens on-chain.
+    res.json({ ok: true, msg: "Vote recorded on UI" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/dao/execute", async (req, res) => {
+  try {
+    const { proposalId, success } = req.body;
+    const newStatus = success ? "approved_by_dao" : "rejected_by_dao";
+    
+    await Submission.updateOne(
+      { "dao.proposalId": proposalId },
+      { $set: { status: newStatus } }
+    );
+    res.json({ ok: true, status: newStatus });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Hackathon helpers for local Hardhat
+app.post("/dao/advance-blocks", async (req, res) => {
+  try {
+    const rpc = process.env.RPC_URL || "http://127.0.0.1:8545";
+    const provider = new ethers.providers.JsonRpcProvider(rpc);
+    await provider.send("hardhat_mine", ["0xB300"]); // Mine 45824 blocks (passes 45818 votingPeriod)
+    res.json({ ok: true, msg: "Advanced blocks successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/dao/advance-time", async (req, res) => {
+  try {
+    const rpc = process.env.RPC_URL || "http://127.0.0.1:8545";
+    const provider = new ethers.providers.JsonRpcProvider(rpc);
+    await provider.send("evm_increaseTime", [86400 * 7]); // Advance 7 days
+    await provider.send("evm_mine", []);
+    res.json({ ok: true, msg: "Advanced time successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

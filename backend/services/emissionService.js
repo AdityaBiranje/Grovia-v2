@@ -1,25 +1,12 @@
 const axios = require("axios");
 
 async function getEmissionData(kwh) {
-    const response = await axios.post(
-        "https://beta3.api.climatiq.io/estimate",
-        {
-            emission_factor: {
-                activity_id: "electricity-energy_source_grid_mix"
-            },
-            parameters: {
-                energy: kwh,
-                energy_unit: "kWh"
-            }
-        },
-        {
-            headers: {
-                Authorization: `Bearer ${process.env.CLIMATIQ_API_KEY}`
-            }
-        }
-    );
-
-    return response.data;
+    console.log("Mocking Emission Data for:", kwh);
+    return {
+        co2e: kwh * 0.45,
+        co2e_unit: "kg",
+        calculation_method: "Mock Hackathon Calculation"
+    };
 }
 
 module.exports = getEmissionData;

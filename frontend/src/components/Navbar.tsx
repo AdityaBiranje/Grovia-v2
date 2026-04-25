@@ -13,6 +13,7 @@ export const Navbar = () => {
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
     { name: "Dashboard", path: "/dashboard" },
+    { name: "DAO", path: "/dao" },
   ];
 
   return (

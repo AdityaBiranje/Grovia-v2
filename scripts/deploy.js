@@ -59,6 +59,15 @@ async function main() {
 
   console.log("Roles assigned");
 
+  // =========================
+  // 5. Deploy CarbonRetirementNFT
+  // =========================
+  const NFT = await ethers.getContractFactory("CarbonRetirementNFT");
+  const nft = await NFT.deploy();
+  await nft.deployed();
+
+  console.log("CarbonRetirementNFT deployed at:", nft.address);
+
   console.log("DAO setup complete ✅");
 }
 

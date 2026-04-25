@@ -15,6 +15,15 @@ const SubmissionSchema = new mongoose.Schema({
     fraud_score_percent: Number,
     predicted_co2_tons: Number
   },
+  status: { type: String, default: "pending" }, // "approved_auto", "pending_dao", "approved_by_dao", "rejected_by_dao"
+  dao: {
+    proposalId: String,
+    description: String,
+    descriptionHash: String,
+    targets: [String],
+    values: [Number],
+    calldatas: [String]
+  },
   minted: {
     ok: { type: Boolean, default: false },
     tokensMinted: Number,
