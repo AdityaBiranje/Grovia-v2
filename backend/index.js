@@ -189,6 +189,30 @@ app.post("/submit", async (req, res) => {
         };
         doc.status = "approved_auto";
 
+        try {
+          const { getAMMContract } = require("./contract");
+          const amm = getAMMContract();
+          if (amm) {
+            // Add 10 CO2T to AMM liquidity to represent market supply increase
+            const tokenAmount = ethers.utils.parseEther("10");
+            
+            // First approve AMM
+            const approveTx = await contract.approve(amm.address, tokenAmount);
+            await approveTx.wait();
+
+            // Add liquidity with 0 ETH, 10 Tokens. 
+            // Wait, addLiquidity requires msg.value > 0.
+            // For a simple demo, we can just send the tokens directly to the AMM contract
+            // and NOT call addLiquidity (which requires ETH), or we can send 0.001 ETH.
+            // Let's send 0.001 ETH to addLiquidity to avoid require(msg.value > 0)
+            const addLiqTx = await amm.addLiquidity(tokenAmount, { value: ethers.utils.parseEther("0.001") });
+            await addLiqTx.wait();
+            console.log("AMM Liquidity increased on Auto-Approval");
+          }
+        } catch (ammErr) {
+          console.error("Failed to add AMM liquidity:", ammErr.message);
+        }
+
         await doc.save();
 
         return res.json({
@@ -382,6 +406,25 @@ app.post("/dao/execute", async (req, res) => {
     const { proposalId, success } = req.body;
     const newStatus = success ? "approved_by_dao" : "rejected_by_dao";
     
+    if (success) {
+      try {
+        const { getContract, getAMMContract } = require("./contract");
+        const contract = getContract();
+        const amm = getAMMContract();
+        if (amm && contract) {
+          const tokenAmount = ethers.utils.parseEther("10");
+          const approveTx = await contract.approve(amm.address, tokenAmount);
+          await approveTx.wait();
+
+          const addLiqTx = await amm.addLiquidity(tokenAmount, { value: ethers.utils.parseEther("0.001") });
+          await addLiqTx.wait();
+          console.log("AMM Liquidity increased on DAO Execution");
+        }
+      } catch (ammErr) {
+        console.error("Failed to add AMM liquidity:", ammErr.message);
+      }
+    }
+
     await Submission.updateOne(
       { "dao.proposalId": proposalId },
       { $set: { status: newStatus } }

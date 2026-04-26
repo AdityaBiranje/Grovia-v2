@@ -68,7 +68,34 @@ async function main() {
 
   console.log("CarbonRetirementNFT deployed at:", nft.address);
 
-  console.log("DAO setup complete ✅");
+  console.log("CarbonRetirementNFT deployed at:", nft.address);
+
+  // =========================
+  // 6. Deploy CarbonAMM
+  // =========================
+  const AMM = await ethers.getContractFactory("CarbonAMM");
+  const amm = await AMM.deploy(carbon.address);
+  await amm.deployed();
+
+  console.log("CarbonAMM deployed at:", amm.address);
+
+  // =========================
+  // 7. Seed AMM Liquidity
+  // =========================
+  // Mint an extra 100,000 to deployer to use for AMM and backend pool
+  await carbon.mint(deployer.address, ethers.utils.parseEther("100000"));
+  
+  const tokenAmount = ethers.utils.parseEther("10000"); // 10,000 CO2T
+  const ethAmount = ethers.utils.parseEther("10"); // 10 ETH
+
+  console.log("Approving tokens for AMM...");
+  await carbon.approve(amm.address, tokenAmount);
+  
+  console.log("Adding initial liquidity to AMM...");
+  await amm.addLiquidity(tokenAmount, { value: ethAmount });
+  console.log("AMM Liquidity seeded: 10 ETH + 10,000 CO2T");
+
+  console.log("DAO & AMM setup complete ✅");
 }
 
 main().catch((err) => {

@@ -3,7 +3,7 @@ const { ethers } = require("ethers");
 const fs = require("fs");
 const path = require("path");
 
-let provider, wallet, contract, governorContract, nftContract;
+let provider, wallet, contract, governorContract, nftContract, ammContract;
 
 async function connectContract() {
   const rpc = process.env.RPC_URL || "http://127.0.0.1:8545";
@@ -69,6 +69,17 @@ async function connectContract() {
     }
   }
 
+  // Load AMM Contract
+  const ammAddr = process.env.AMM_ADDRESS;
+  if (ammAddr) {
+    const ammAbiPath = path.join(__dirname, "abi", "CarbonAMM.json");
+    if (fs.existsSync(ammAbiPath)) {
+      const ammAbiJson = JSON.parse(fs.readFileSync(ammAbiPath, "utf8"));
+      ammContract = new ethers.Contract(ammAddr, ammAbiJson.abi || ammAbiJson, wallet);
+      console.log("AMM Contract initialized");
+    }
+  }
+
   return contract;
 }
 
@@ -93,4 +104,11 @@ function getNFTContract() {
   return nftContract;
 }
 
-module.exports = { connectContract, getContract, getGovernorContract, getNFTContract };
+function getAMMContract() {
+  if (!ammContract) {
+    throw new Error("AMM contract not initialized");
+  }
+  return ammContract;
+}
+
+module.exports = { connectContract, getContract, getGovernorContract, getNFTContract, getAMMContract };
