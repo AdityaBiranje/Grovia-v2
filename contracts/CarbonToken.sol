@@ -32,7 +32,7 @@ contract CarbonToken is ERC20Votes, Ownable {
         address to,
         uint256 amount,
         string calldata ipfsHash
-    ) external onlyOwner returns (uint256) {
+    ) external returns (uint256) {
         uint256 projectId = nextProjectId++;
 
         _mint(to, amount);

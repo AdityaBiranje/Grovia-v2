@@ -101,6 +101,10 @@ app.post("/submit", async (req, res) => {
       }
     }
 
+    if (!ethers.utils.isAddress(payload.ownerAddress)) {
+      return res.status(400).json({ error: "Invalid Ethereum address provided for Owner Wallet." });
+    }
+
     // -------- Verification --------
     const verificationResult = await verifyProject(payload);
     // Stop process if location is invalid
