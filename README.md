@@ -1,224 +1,98 @@
-
-
 # 🚀 **Grovia – Intelligence That Sustains Trust**
 
 ### *AI-Driven Carbon Credit Verification Using Blockchain, ML & Real-Time Forensics*
 
 Grovia is a high-impact, full-stack sustainability platform that verifies carbon offset project authenticity using **AI anomaly detection** and **blockchain-based tokenization**, ensuring trust, transparency, and fraud-proof carbon markets.
 
-This project integrates:
-
-* **Machine Learning** (Fraud Detection + CO₂ Prediction)
-* **Blockchain Smart Contracts** (ERC-20 Carbon Token)
-* **FastAPI ML Microservice**
-* **Node.js Backend + MongoDB**
-* **Modern 3D Animated Frontend (React + Vite + Three.js)**
-* **User Dashboard + Admin Dashboard**
-* **Minting Carbon Tokens Only After AI Approval**
+Grovia has evolved into a complete **DeFi + Governance** ecosystem for carbon assets.
 
 ---
 
-## 🧠 Problem Statement
-
-The carbon credit market faces major issues:
-
-* Fake or inflated carbon claims
-* Phantom CO₂ reductions
-* Manual auditing with slow verification
-* No transparency on how credits are issued
-* No decentralized accountability
-
-**Grovia solves this by verifying carbon projects using ML anomaly detection and recording approved credits on the blockchain.**
-
----
-
-## 🌍 Vision
-
-To build a globally scalable, fraud-proof, AI-assisted sustainability platform where:
-
-* Carbon credits are verified scientifically
-* AI models detect anomalies instantly
-* Blockchain ensures transparency & immutability
-* Stakeholders trust the system without intermediaries
-
----
-
-# 🧬 **System Architecture**
+## 🧬 **Updated System Architecture**
 
 ```
  ┌──────────────────────────────────────────────────────┐
  │                      FRONTEND                        │
- │ React + Vite + Three.js (3D Animations)              │
- │ User Dashboard | Admin Dashboard | Submissions UI    │
+ │ React + Vite + Framer Motion (Glassmorphism UI)      │
+ │ Dashboard | DAO | Market (AMM) | NFT Retirement      │
  └───────────────────────────────┬──────────────────────┘
                                  │ REST API Calls
                                  ▼
  ┌──────────────────────────────────────────────────────┐
  │                     BACKEND (Node.js)                │
  │ Express Server + MongoDB                             │
- │ - Save Submissions                                   │
- │ - Call ML Service                                    │
- │ - Decide Minting Logic                               │
- │ - Admin Overrides                                    │
- └───────────────────────────────┬──────────────────────┘
-                                 │ HTTP Predict
-                                 ▼
+ │ - AI Auto-Approval (Low Fraud) -> Direct Minting     │
+ │ - Flagged (High Fraud) -> Create DAO Proposal        │
+ │ - Auto-Injection of AMM Liquidity on Approval        │
+ └───────────────┬───────────────────────────────┬──────┘
+                 │ HTTP Predict                  │ Contract Calls
+                 ▼                               ▼
  ┌──────────────────────────────────────────────────────┐
- │                     ML SERVICE (FastAPI)             │
- │ Isolation Forest + StandardScaler                    │
- │ - CO₂ Prediction                                      │
- │ - Fraud Probability                                   │
- │ - Outlier Detection                                   │
- └───────────────────────────────┬──────────────────────┘
-                                 │ Contract Call
-                                 ▼
- ┌──────────────────────────────────────────────────────┐
- │                 BLOCKCHAIN (Ethereum)                │
- │ Hardhat + Solidity                                   │
- │ ERC20 CarbonToken.sol                                │
- │ Only mints tokens if fraud score is low              │
+ │             ML SERVICE (FastAPI)       BLOCKCHAIN    │
+ │ Isolation Forest Anomaly Detection     Ethereum (L2)  │
+ │ - CO₂ Prediction                       - CarbonToken │
+ │ - Fraud Probability                   - Governor DAO │
+ │ - Outlier Detection                   - V2 AMM Pool  │
+ │                                       - Impact NFT   │
  └──────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# 🔥 **Key Features**
+## 🔥 **Key Features**
 
-## 👤 **User Features**
+### 🗳️ **DAO Governance**
+- **Decentralized Accountability:** High-fraud projects are not rejected by a central admin but are flagged for a community DAO vote.
+- **On-Chain Lifecycle:** Proposals follow a strict `Propose -> Vote -> Queue -> Execute` flow using **OpenZeppelin Governor** and **TimelockController**.
+- **Transparent Voting:** Token holders use their CO2T (ERC20Votes) to decide which projects are genuine.
 
-* Submit new carbon projects
-* Real-time ML verification
-* View fraud score & predicted CO₂ reduction
-* Track past submissions
-* Download IPFS metadata
-* Wallet integration
-* Personalized dashboard
+### 📈 **CarbonAMM V2 (DEX)**
+- **Bidirectional Trading:** Swap ETH for CO2T or sell CO2T back for ETH in a professional DEX interface.
+- **Constant Product Formula:** Price is determined organically by supply and demand ($x \cdot y = k$).
+- **Realistic Fees:** 0.3% trading fee applied to all swaps.
+- **Price Impact & UX:** Live price impact visualization and automated ERC20 approval flow.
 
-## 🛡️ **Admin Features**
+### 🛡️ **Proof of Impact (NFT)**
+- **Credit Retirement:** Users can "retire" their carbon credits by burning CO2T tokens.
+- **Verifiable NFTs:** Burning tokens automatically mints a unique **"Proof of Impact" NFT** (ERC721) containing project metadata, timestamp, and retired amount.
+- **Impact Tracking:** Verifiable on-chain record of individual environmental contribution.
 
-* View all submissions
-* Approve or reject using admin override
-* Mint carbon tokens manually
-* Review flagged projects
-* Full audit history
+### 🧠 **AI Integration**
+- **Auto-Approval:** Projects with a fraud score < 55% are instantly minted.
+- **Liquidity Feedback Loop:** AI/DAO approvals automatically inject fresh CO2T liquidity into the AMM, naturally adjusting the global price based on verified supply.
+- **Mocked Forensics:** Weather, grid emission, and location data mocking for reliable hackathon demonstrations.
 
----
-
-# 🛠️ **Tech Stack**
-
-## **Frontend**
-
-* React + Vite
-* TailwindCSS
-* Framer Motion
-* Three.js (3D animations similar to MetaMask fox)
-* Axios
-* Glassmorphism UI + Neon Glow Theme
-
-## **Backend**
-
-* Node.js + Express
-* MongoDB + Mongoose
-* Ethers.js
-* IPFS metadata support
-* Admin authentication
-
-## **Machine Learning**
-
-* FastAPI
-* Python 3.x
-* Scikit-learn (Isolation Forest, LOF, StandardScaler)
-* Joblib
-* Numpy / Pandas
-
-## **Blockchain**
-
-* Solidity
-* Hardhat
-* OpenZeppelin ERC20 Contracts
-* Local Hardhat Node / Sepolia Testnet
+### 🦊 **Demo Wallet**
+- **One-Click Onboarding:** No MetaMask? No problem. Use the built-in Demo Wallet to interact with all Web3 features instantly.
 
 ---
 
-# 🧪 **ML Model Details**
+## 🛠️ **Tech Stack**
 
-### **Inputs**
-
-* `energy_generated_kwh`
-* `weather_score`
-* `grid_emission_factor`
-
-### **Outputs**
-
-* `predicted_co2_tons`
-* `fraud_score_percent`
-* `df_score` (depth factor from Isolation Forest)
-
-### **Fraud Score Calculation**
-
-```
-fraud_score = abs(df_score * 3000) % 100
-```
-
-### Interpretation
-
-| Fraud % | Meaning                |
-| ------- | ---------------------- |
-| < 30%   | Safe / Genuine project |
-| 30–60%  | Needs review           |
-| > 60%   | High fraud probability |
+- **Frontend:** React, Vite, TailwindCSS, Framer Motion, Lucide Icons, Recharts.
+- **Backend:** Node.js, Express, MongoDB, Ethers.js v5.
+- **Machine Learning:** FastAPI, Python, Scikit-learn (Isolation Forest).
+- **Blockchain:** Solidity, Hardhat, OpenZeppelin (ERC20Votes, Governor, Timelock, ERC721URIStorage).
 
 ---
 
-# 📦 Installation & Setup
+## 📦 **Installation & Setup**
 
-## 1. Clone Repository
-
+### 1. Setup Blockchain
 ```bash
-git clone https://github.com/AdityaBiranje/Grovia.git
-cd Grovia
-```
-
----
-
-## 2. Setup ML Service
-
-```bash
-cd ml
-python3 -m venv venv_ml
-source venv_ml/bin/activate
-pip install -r requirements.txt
-uvicorn app:app --reload --port 8001
-```
-
----
-
-## 3. Setup Blockchain
-
-```bash
-cd smart-contracts
-npm install
 npx hardhat node
 npx hardhat run scripts/deploy.js --network localhost
 ```
+*Note: Deployment seeds the AMM with 10 ETH and 10,000 CO2T initial liquidity.*
 
-Copy the deployed contract address → paste into backend `.env`.
-
----
-
-## 4. Setup Backend
-
+### 2. Setup Backend
 ```bash
 cd backend
 npm install
-cp .env.example .env   # create your env file
 node index.js
 ```
 
----
-
-## 5. Setup Frontend
-
+### 3. Setup Frontend
 ```bash
 cd frontend
 npm install
@@ -227,54 +101,19 @@ npm run dev
 
 ---
 
-# 🔗 API Routes
+## 🔗 **Ecosystem API**
 
-### **POST /submit**
-
-Submit a new project for ML scoring + blockchain minting.
-
-### **GET /submissions?owner=0x123...**
-
-Get submissions of a user.
-
-### **POST /admin/mint**
-
-Admin-triggered minting.
-
-### **POST /admin/override**
-
-Force approve / reject.
+- `POST /submit`: AI-driven project submission.
+- `GET /dao/proposals`: Fetch live governance proposals.
+- `POST /dao/execute`: Synchronize on-chain execution with database state.
+- `GET /dashboard/stats`: Global carbon metrics.
 
 ---
 
-# 🤝 Contributions
-
-PRs are welcome.
-Before submitting, run:
-
-```bash
-npm run lint
-npm run format
-```
-
----
-
-# 📜 License
-
+## 📜 **License**
 MIT License
 
 ---
 
-# 💡 Acknowledgements
-
-* OpenAI / ChatGPT assistance for architecture guidance
-* OpenZeppelin Contracts
-* Scikit-learn
-
----
-
-# ⭐ If you like this project
-
-Star the repo ⭐ on GitHub to support it!
-
----
+## ⭐ **Support the Project**
+If you like Grovia, star the repo on GitHub! ⭐
