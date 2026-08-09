@@ -3,10 +3,7 @@ zerops:
     build:
       base: nodejs@20
       buildCommands:
-        - |
-          cd frontend
-          npm install
-          npm run build
+        - cd frontend && npm install && npm run build
       deployFiles:
         - ./frontend/dist
 
