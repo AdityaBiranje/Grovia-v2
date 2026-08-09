@@ -1,0 +1,17 @@
+zerops:
+  - setup: frontend
+    build:
+      base: nodejs@20
+      buildCommands:
+        - cd frontend
+        - npm install
+        - npm run build
+      deployFiles:
+        - ./frontend/dist
+
+    run:
+      base: nodejs@20
+      ports:
+        - port: 3000
+          httpSupport: true
+      start: npx serve frontend/dist -l 3000
